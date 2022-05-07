@@ -20,7 +20,7 @@ public class Censor {
         this.queue = new LinkedList<>();
         queue.addAll(List.of(files));
 
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 5; i++) {
             if (!queue.isEmpty()) censor(queue.remove());
         }
     }

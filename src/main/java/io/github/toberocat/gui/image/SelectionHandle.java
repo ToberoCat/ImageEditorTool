@@ -1,12 +1,18 @@
 package io.github.toberocat.gui.image;
 
+import io.github.toberocat.actions.ActionLog;
 import io.github.toberocat.gui.listener.EventListener;
 import io.github.toberocat.utils.DataUtility;
+import io.github.toberocat.utils.Mathf;
+import io.github.toberocat.utils.Mathi;
+import io.github.toberocat.utils.Utility;
 import io.github.toberocat.utils.selection.LabelSelection;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+
+import static io.github.toberocat.utils.Mathf.clampRound;
 
 public class SelectionHandle {
     private static SelectionHandle HANDLE;
@@ -34,11 +40,15 @@ public class SelectionHandle {
         Point end = new Point(event.getX() - ImageRenderer.instance().getScrollX(),
                 event.getY() - ImageRenderer.instance().getScrollY());
 
-        int startX = Math.min(start.x, end.x);
-        int startY = Math.min(start.y, end.y);
+        Image image = ImageRenderer.instance().getImage();
+        float width = image.getWidth(null) * ImageRenderer.instance().zoom(),
+                height = image.getHeight(null) * ImageRenderer.instance().zoom();
 
-        int endX = Math.max(start.x, end.x);
-        int endY = Math.max(start.y, end.y);
+        int startX = clampRound(Math.min(start.x, end.x), 0, width);
+        int startY = clampRound(Math.min(start.y, end.y), 0, height);
+
+        int endX = clampRound(Math.max(start.x, end.x), 0, width);
+        int endY = clampRound(Math.max(start.y, end.y), 0, height);
 
         current = new Rectangle(startX, startY, endX - startX, endY - startY);
     }
@@ -46,10 +56,17 @@ public class SelectionHandle {
     public void accept() {
         if (current.width == 0 || current.height == 0) return;
 
-        selections.add(LabelSelection.fromRect(selection())
-        );
-        DataUtility.createFile(EventListener.IMAGE_BATCH.getCurrent().c(), current);
+        LabelSelection selection = LabelSelection.fromRect(selection());
+        ActionLog.logSelection(selection);
+
+        selections.add(selection);
+        DataUtility.createFile(EventListener.IMAGE_BATCH.getCurrent().c(), selection());
         current = new Rectangle();
+
+        EventListener.dragX = 0;
+        EventListener.dragY = 0;
+        EventListener.x = 0;
+        EventListener.y = 0;
     }
 
     public void cancel() {
@@ -70,5 +87,10 @@ public class SelectionHandle {
                 Math.round(current.y / ImageRenderer.instance().zoom()),
                 Math.round(current.width / ImageRenderer.instance().zoom()),
                 Math.round(current.height / ImageRenderer.instance().zoom()));
+    }
+
+    public void reloadFromDisk() {
+        selections.clear();
+        selections.addAll(Utility.readLabel(EventListener.IMAGE_BATCH.getCurrent().c().getName()));
     }
 }

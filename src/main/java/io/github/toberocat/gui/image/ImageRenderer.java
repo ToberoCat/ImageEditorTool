@@ -1,6 +1,7 @@
 package io.github.toberocat.gui.image;
 
 import io.github.toberocat.gui.EditorGui;
+import io.github.toberocat.gui.listener.EventListener;
 import io.github.toberocat.loop.LoopEvent;
 import io.github.toberocat.utils.Mathf;
 import io.github.toberocat.utils.selection.LabelSelection;
@@ -10,6 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ImageRenderer implements LoopEvent {
+
+    private static final Color SELECTION_BOX_INSIDE = new Color(0, 120, 215, 120);
+    private static final Color SELECTION_BOX_BORDER = new Color(76, 76, 255);
+    private static final Color MOUSE_AXIS_MOVE = new Color(144, 238, 144);
+    private static final Color MOUSE_AXIS_DRAG = new Color(92, 100, 0);
 
     private static ImageRenderer RENDERER;
     private final Canvas canvas;
@@ -33,30 +39,56 @@ public class ImageRenderer implements LoopEvent {
     @Override
     public void render(Graphics g) {
         renderImage(g);
+
+        renderAxis(g);
         renderSelections(g);
         renderCurrentSelection(g);
+    }
+
+    private void renderAxis(Graphics g) {
+
+        g.setColor(MOUSE_AXIS_DRAG);
+        g.drawLine(EventListener.dragX, 0, EventListener.dragX, canvas.getHeight());
+        g.drawLine(0, EventListener.dragY, canvas.getWidth(), EventListener.dragY);
+
+        g.setColor(MOUSE_AXIS_MOVE);
+        g.drawLine(EventListener.x, 0, EventListener.x, canvas.getHeight());
+        g.drawLine(0, EventListener.y, canvas.getWidth(), EventListener.y);
+
     }
 
     private void renderSelections(Graphics g) {
         ArrayList<LabelSelection> selections = SelectionHandle.handle().getSelections();
         if (selections == null) return;
 
-        g.setColor(Color.blue);
-        for (LabelSelection selection : selections) {
-            g.drawRect(
-                    Math.round(selection.x() * zoom) + scrollX,
-                    Math.round(selection.y() * zoom) + scrollY,
-                    Math.round(selection.width() * zoom),
-                    Math.round(selection.height() * zoom));
+        LabelSelection[] labelSelections = selections.toArray(LabelSelection[]::new);
+        for (LabelSelection selection : labelSelections) {
+            int x = Math.round(selection.x() * zoom) + scrollX;
+            int y = Math.round(selection.y() * zoom) + scrollY;
+            int width = Math.round(selection.width() * zoom);
+            int height = Math.round(selection.height() * zoom);
+
+            g.setColor(SELECTION_BOX_INSIDE);
+            g.fillRect(x, y, width, height);
+
+            g.setColor(SELECTION_BOX_BORDER);
+            g.drawRect(x + 1, y + 1, width - 1, height - 1);
         }
     }
 
     private void renderCurrentSelection(Graphics g) {
         Rectangle rect = SelectionHandle.handle().current();
+        int x = rect.x + scrollX;
+        int y = rect.y + scrollY;
+        int width = rect.width;
+        int height = rect.height;
 
-        g.setColor(Color.blue);
-        g.drawRect(Math.round(rect.x) + scrollX, Math.round(rect.y) + scrollY,
-                Math.round(rect.width), Math.round(rect.height));
+        g.setColor(SELECTION_BOX_INSIDE);
+        g.fillRect(x, y, width, height);
+
+        g.setColor(SELECTION_BOX_BORDER);
+        g.drawRect(x, y, width, height);
+
     }
 
     private void renderImage(Graphics g) {
@@ -130,6 +162,14 @@ public class ImageRenderer implements LoopEvent {
 
     public float zoom() {
         return zoom;
+    }
+
+    public Canvas getCanvas() {
+        return canvas;
+    }
+
+    public Image getImage() {
+        return image;
     }
 
     //</editor-fold>

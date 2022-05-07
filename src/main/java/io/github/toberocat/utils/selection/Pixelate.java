@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static io.github.toberocat.utils.Mathf.clamp;
+import static io.github.toberocat.utils.Mathi.clamp;
 
 public class Pixelate {
     public static BufferedImage pixelate(File file, List<LabelSelection> labels) throws IOException {
@@ -29,11 +29,11 @@ public class Pixelate {
         WritableRaster dest = src.createCompatibleWritableRaster();
         dest.setRect(src);
 
-        startY = clamp(startY, src.getHeight());
-        startX = clamp(startX, src.getWidth());
+        startY = clamp(startY, 0, src.getHeight());
+        startX = clamp(startX, 0, src.getWidth());
 
-        for (int y = startY; y < clamp(startY + height, src.getHeight()); y += pixelSize) {
-            for (int x = startX; x < clamp(startX + width, src.getWidth()); x += pixelSize) {
+        for (int y = startY; y < clamp(startY + height, 0, src.getHeight()); y += pixelSize) {
+            for (int x = startX; x < clamp(startX + width, 0, src.getWidth()); x += pixelSize) {
                 double[] pixel = new double[3];
                 pixel = src.getPixel(x, y, pixel);
 

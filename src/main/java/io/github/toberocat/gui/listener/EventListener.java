@@ -1,5 +1,7 @@
 package io.github.toberocat.gui.listener;
 
+import io.github.toberocat.actions.ActionLog;
+import io.github.toberocat.gui.image.ImageBatch;
 import io.github.toberocat.gui.image.ImageRenderer;
 import io.github.toberocat.gui.image.SelectionHandle;
 import io.github.toberocat.utils.DataUtility;
@@ -12,6 +14,8 @@ import java.io.File;
 public class EventListener implements KeyListener, MouseListener, MouseMotionListener, ComponentListener {
 
     public static ImageBatch IMAGE_BATCH;
+
+    public static int x, y, dragX, dragY;
 
     public EventListener(Component component) {
         component.addMouseListener(this);
@@ -42,6 +46,15 @@ public class EventListener implements KeyListener, MouseListener, MouseMotionLis
         ImageRenderer.instance().drawImage(image, Utility.readLabel(file.getName()), file.getName());
     }
 
+    private void deleteEntireLabels() {
+        File file = IMAGE_BATCH.getCurrent().c();
+        if (file == null || !DataUtility.getLabelFile(file).exists()) return;
+
+        ActionLog.logRemoval(DataUtility.getLabelFile(file));
+        SelectionHandle.handle().getSelections().clear();
+        DataUtility.removeContent(file);
+    }
+
     @Override
     public void keyTyped(KeyEvent e) {
 
@@ -53,6 +66,13 @@ public class EventListener implements KeyListener, MouseListener, MouseMotionLis
             case 39 -> loadImage();
             case 37 -> loadPreviousImage();
             case 27 -> SelectionHandle.handle().cancel();
+            case 8, 127 -> deleteEntireLabels();
+            case 90 -> {
+                if (e.isControlDown()) ActionLog.undo();
+            }
+            case 89 -> {
+                if (e.isControlDown()) ActionLog.redo();
+            }
         }
     }
 
@@ -90,11 +110,17 @@ public class EventListener implements KeyListener, MouseListener, MouseMotionLis
     @Override
     public void mouseDragged(MouseEvent e) {
         SelectionHandle.handle().mouseDrag(e);
+        dragX = e.getX();
+        dragY = e.getY();
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
+        x = e.getX();
+        dragX = e.getX();
 
+        y = e.getY();
+        dragY = e.getY();
     }
 
     @Override

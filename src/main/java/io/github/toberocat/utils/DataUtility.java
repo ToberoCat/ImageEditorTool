@@ -33,8 +33,16 @@ public class DataUtility {
         }
     }
 
+    public static void removeContent(File file) {
+        saveObject(getLabelFile(file), new LabelSelection[0]);
+    }
+
+    public static File getLabelFile(File imageFile) {
+        return new File(LABEl_PATH.getPath() + "/" + imageFile.getName() + ".txt");
+    }
+
     public static void createFile(File saveTo, Rectangle rectangle) {
-        File f = new File(LABEl_PATH.getPath() + "/" + saveTo.getName() + ".txt");
+        File f = getLabelFile(saveTo);
         if (rectangle == null) {
             if (f.exists()) return;
             saveObject(f, new LabelSelection[0]);

@@ -1,5 +1,6 @@
 package io.github.toberocat;
 
+import io.github.toberocat.async.AsyncTask;
 import io.github.toberocat.gui.EditorGui;
 import io.github.toberocat.gui.image.ImageRenderer;
 import io.github.toberocat.gui.listener.EventListener;
@@ -17,6 +18,9 @@ public class Launch {
     public static File CENSORED_IMAGES_PATH;
     public static File LABEl_PATH;
 
+    public static final File TEMP = new File(System.getProperty("java.io.tmpdir") + "/ImageEditor/");
+
+
 
     public static void main(String[] args) throws IOException {
         if (args.length != 4) {
@@ -30,17 +34,18 @@ public class Launch {
             return;
         }
 
+        CENSORED_IMAGES_PATH = new File(args[2]);
+        if (!CENSORED_IMAGES_PATH.exists() || CENSORED_IMAGES_PATH.list() == null) {
+            System.out.println("Final image folder doesn't exist");
+            return;
+        }
+
         LABEl_PATH = new File(args[3]);
         if (!LABEl_PATH.exists() || LABEl_PATH.list() == null) {
             System.out.println("Selection folder doesn't exist");
             return;
         }
 
-        CENSORED_IMAGES_PATH = new File(args[2]);
-        if (!CENSORED_IMAGES_PATH.exists() || CENSORED_IMAGES_PATH.list() == null) {
-            System.out.println("Final image folder doesn't exist");
-            return;
-        }
 
         boolean load = args[0].equals("true");
         if (load) loadFrame();
@@ -63,9 +68,11 @@ public class Launch {
         frame.setVisible(true);
 
         RenderLoop.EXECUTE_ON_LOAD = () -> {
-            File loaded = EventListener.IMAGE_BATCH.read().c();
-            Image img = EventListener.IMAGE_BATCH.getCurrent().t();
-            ImageRenderer.instance().drawImage(img, Utility.readLabel(loaded.getName()), loaded.getName());
+            AsyncTask.run(() -> {
+                File loaded = EventListener.IMAGE_BATCH.read().c();
+                Image img = EventListener.IMAGE_BATCH.getCurrent().t();
+                ImageRenderer.instance().drawImage(img, Utility.readLabel(loaded.getName()), loaded.getName());
+            });
         };
 
     }

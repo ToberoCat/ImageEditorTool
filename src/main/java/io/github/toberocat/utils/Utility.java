@@ -25,6 +25,8 @@ public class Utility {
         return new ArrayList<>(Arrays.asList(items));
     }
 
+
+
     private static File getImageRotation(File[] files, int rot) {
         currentLastFile = (currentLastFile + rot) % files.length;
         if (currentLastFile < 0) currentLastFile += files.length;
