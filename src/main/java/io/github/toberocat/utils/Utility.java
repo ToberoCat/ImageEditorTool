@@ -2,8 +2,10 @@ package io.github.toberocat.utils;
 
 import io.github.toberocat.Launch;
 import io.github.toberocat.exceptions.NoImagesAvailable;
+import io.github.toberocat.gui.image.ImageRenderer;
 import io.github.toberocat.utils.selection.LabelSelection;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,6 +25,15 @@ public class Utility {
         }
 
         return new ArrayList<>(Arrays.asList(items));
+    }
+
+    public Rectangle getAbsoluteRectangle(int x, int y, int width, int height) {
+            return new Rectangle(
+                    Math.round(x / ImageRenderer.instance().zoom()),
+                    Math.round(y / ImageRenderer.instance().zoom()),
+                    Math.round(width / ImageRenderer.instance().zoom()),
+                    Math.round(height / ImageRenderer.instance().zoom()));
+
     }
 
 

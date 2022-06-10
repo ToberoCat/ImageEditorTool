@@ -1,6 +1,7 @@
 package io.github.toberocat.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.toberocat.gui.image.SelectionHandle;
 import io.github.toberocat.utils.selection.LabelSelection;
 
 import java.awt.*;
@@ -41,29 +42,10 @@ public class DataUtility {
         return new File(LABEl_PATH.getPath() + "/" + imageFile.getName() + ".txt");
     }
 
-    public static void createFile(File saveTo, Rectangle rectangle) {
+
+
+    public static void createFile(File saveTo) {
         File f = getLabelFile(saveTo);
-        if (rectangle == null) {
-            if (f.exists()) return;
-            saveObject(f, new LabelSelection[0]);
-            return;
-        }
-
-        LabelSelection label = LabelSelection.fromRect(rectangle);
-
-        List<LabelSelection> labels = new ArrayList<>();
-        if (Arrays.stream(LABEl_PATH.list()).anyMatch(x -> x.equals(saveTo.getName() + ".txt"))) {
-            try {
-                LabelSelection[] items = readRawLabels(new File(LABEl_PATH.getPath() + "/" + saveTo.getName() + ".txt"));
-
-                labels.addAll(Arrays.asList(items));
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        labels.add(label);
-        saveObject(f, labels.toArray(LabelSelection[]::new));
+        saveObject(f, SelectionHandle.handle().getSelections().toArray(LabelSelection[]::new));
     }
 }

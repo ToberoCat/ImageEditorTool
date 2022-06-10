@@ -6,6 +6,7 @@ import io.github.toberocat.utils.DataUtility;
 import io.github.toberocat.utils.Mathf;
 import io.github.toberocat.utils.Mathi;
 import io.github.toberocat.utils.Utility;
+import io.github.toberocat.utils.selection.LabelDragMode;
 import io.github.toberocat.utils.selection.LabelSelection;
 
 import java.awt.*;
@@ -18,8 +19,11 @@ public class SelectionHandle {
     private static SelectionHandle HANDLE;
     private final ArrayList<LabelSelection> selections;
     private Rectangle current;
+    private LabelSelection selected;
+    private LabelDragMode dragMode = LabelDragMode.NONE;
 
     private Point start;
+    private Point lastDrag;
 
     private SelectionHandle() {
         this.selections = new ArrayList<>();
@@ -32,13 +36,58 @@ public class SelectionHandle {
     }
 
     public void mousePress(MouseEvent event) {
-        start = new Point(event.getX() - ImageRenderer.instance().getScrollX(),
-                event.getY() - ImageRenderer.instance().getScrollY());
+        int abX = event.getX() - ImageRenderer.instance().getScrollX();
+        int abY = event.getY() - ImageRenderer.instance().getScrollY();
+
+        int sX = Math.round(abX / ImageRenderer.instance().zoom());
+        int sY = Math.round(abY / ImageRenderer.instance().zoom());
+
+        for (LabelSelection selection : selections) {
+            if (selection.contains(sX, sY)) {
+                selected = selection;
+                break;
+            }
+        }
+
+        if (selected != null) dragMode = selected.getDragMode(sX, sY);
+
+
+        start = new Point(abX, abY);
+        lastDrag = start;
     }
 
     public void mouseDrag(MouseEvent event) {
+        if (start == null) {
+            System.out.println("Drag happened, start isn't defined");
+            return;
+        }
+
         Point end = new Point(event.getX() - ImageRenderer.instance().getScrollX(),
                 event.getY() - ImageRenderer.instance().getScrollY());
+
+        if (dragMode != LabelDragMode.NONE && selected != null) {
+
+            switch (dragMode) {
+                case LEFT_TOP -> selected.shiftOrigin(getAbsoluteX(event.getX()), getAbsoluteY(event.getY()));
+                case TOP -> selected.shiftOrigin(selected.x(), getAbsoluteY(event.getY()));
+                case RIGHT_TOP -> {
+                    selected.width(getAbsoluteX(event.getX()) - selected.x());
+                    selected.shiftOrigin(selected.x(), getAbsoluteY(event.getY()));
+                }
+                case RIGHT -> selected.width(getAbsoluteX(event.getX()) - selected.x());
+                case RIGHT_DOWN -> selected.shiftDimension(getAbsoluteX(event.getX()), getAbsoluteY(event.getY()));
+                case DOWN -> selected.height(getAbsoluteY(event.getY()) - selected.y());
+                case LEFT_DOWN -> {
+                    selected.height(getAbsoluteY(event.getY()) - selected.y());
+                    selected.shiftOrigin(getAbsoluteX(event.getX()), selected.y());
+                }
+                case LEFT -> selected.shiftOrigin(getAbsoluteX(event.getX()), selected.y());
+            }
+
+            updateFileContent();
+            return;
+        }
+
 
         Image image = ImageRenderer.instance().getImage();
         float width = image.getWidth(null) * ImageRenderer.instance().zoom(),
@@ -53,6 +102,14 @@ public class SelectionHandle {
         current = new Rectangle(startX, startY, endX - startX, endY - startY);
     }
 
+    private int getAbsoluteX(int x) {
+        return Math.round((x - ImageRenderer.instance().getScrollX()) / ImageRenderer.instance().zoom());
+    }
+
+    private int getAbsoluteY(int y) {
+        return Math.round((y - ImageRenderer.instance().getScrollY()) / ImageRenderer.instance().zoom());
+    }
+
     public void accept() {
         if (current.width <= 5 || current.height <= 5) return;
 
@@ -60,7 +117,8 @@ public class SelectionHandle {
         ActionLog.logSelection(selection);
 
         selections.add(selection);
-        DataUtility.createFile(EventListener.IMAGE_BATCH.getCurrent().c(), selection());
+        selected = selection;
+        updateFileContent();
         current = new Rectangle();
 
         EventListener.dragX = 0;
@@ -70,7 +128,14 @@ public class SelectionHandle {
     }
 
     public void cancel() {
-        current = new Rectangle();
+        if (current().isEmpty()) selected = null;
+        else {
+            current = new Rectangle();
+            EventListener.dragX = 0;
+            EventListener.dragY = 0;
+            EventListener.x = 0;
+            EventListener.y = 0;
+        }
     }
 
     public Rectangle current() {
@@ -89,8 +154,23 @@ public class SelectionHandle {
                 Math.round(current.height / ImageRenderer.instance().zoom()));
     }
 
+
+    public LabelSelection getSelected() {
+        return selected;
+    }
+
+    public SelectionHandle setSelected(LabelSelection selected) {
+        this.selected = selected;
+        dragMode = LabelDragMode.NONE;
+        return this;
+    }
+
     public void reloadFromDisk() {
         selections.clear();
         selections.addAll(Utility.readLabel(EventListener.IMAGE_BATCH.getCurrent().c().getName()));
+    }
+
+    public void updateFileContent() {
+        DataUtility.createFile(EventListener.IMAGE_BATCH.getCurrent().c());
     }
 }

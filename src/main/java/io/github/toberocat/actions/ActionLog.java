@@ -19,6 +19,11 @@ public class ActionLog {
         HISTORY_UNDO.push(new DeleteAction(removedFile));
     }
 
+    public static void logSelectionDeletion(LabelSelection selection) {
+        File image = EventListener.IMAGE_BATCH.getCurrent().c();
+        HISTORY_UNDO.push(new SingleDeletionAction(selection, image.getName()));
+    }
+
     public static void cleanup() {
         while (!HISTORY_UNDO.isEmpty()) {
             Action action = HISTORY_UNDO.pop();

@@ -10,12 +10,17 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.github.toberocat.utils.selection.LabelSelection.PIVOT_SIZE;
+
 public class ImageRenderer implements LoopEvent {
 
     private static final Color SELECTION_BOX_INSIDE = new Color(0, 120, 215, 120);
+    private static final Color SELECTION_BOX_INSIDE_SELECTED = new Color(0, 4, 215, 120);
+    private static final Color SELECTION_BOX_SELECTED_PIVOTS = new Color(14, 215, 0, 197);
     private static final Color SELECTION_BOX_BORDER = new Color(76, 76, 255);
     private static final Color MOUSE_AXIS_MOVE = new Color(144, 238, 144);
     private static final Color MOUSE_AXIS_DRAG = new Color(92, 100, 0);
+
 
     private static ImageRenderer RENDERER;
     private final Canvas canvas;
@@ -68,11 +73,33 @@ public class ImageRenderer implements LoopEvent {
             int width = Math.round(selection.width() * zoom);
             int height = Math.round(selection.height() * zoom);
 
-            g.setColor(SELECTION_BOX_INSIDE);
+            boolean selected = selection == SelectionHandle.handle().getSelected();
+
+            if (selected) g.setColor(SELECTION_BOX_INSIDE_SELECTED);
+            else g.setColor(SELECTION_BOX_INSIDE);
+
             g.fillRect(x, y, width, height);
 
             g.setColor(SELECTION_BOX_BORDER);
             g.drawRect(x, y, width,height);
+
+            if (!selected) continue;
+
+            int centered = PIVOT_SIZE / 2;
+            g.setColor(SELECTION_BOX_SELECTED_PIVOTS);
+
+            g.fillRect(x - centered, y - centered, PIVOT_SIZE, PIVOT_SIZE);
+            g.fillRect(x + width - centered, y - centered, PIVOT_SIZE, PIVOT_SIZE);
+
+            g.fillRect(x - centered, y + height - centered, PIVOT_SIZE, PIVOT_SIZE);
+            g.fillRect(x + width - centered, y + height - centered, PIVOT_SIZE, PIVOT_SIZE);
+
+            g.fillRect(x + width / 2 - centered, y - centered, PIVOT_SIZE, PIVOT_SIZE);
+            g.fillRect(x + width / 2 - centered, y + height - centered, PIVOT_SIZE, PIVOT_SIZE);
+
+            g.fillRect(x - centered, y + height / 2 - centered, PIVOT_SIZE, PIVOT_SIZE);
+            g.fillRect(x + width - centered, y + height / 2 - centered, PIVOT_SIZE, PIVOT_SIZE);
+
         }
     }
 

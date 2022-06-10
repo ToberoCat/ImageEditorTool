@@ -1,17 +1,22 @@
 package io.github.toberocat.gui.listener;
 
+import io.github.toberocat.Launch;
 import io.github.toberocat.actions.ActionLog;
 import io.github.toberocat.gui.image.ImageBatch;
 import io.github.toberocat.gui.image.ImageRenderer;
 import io.github.toberocat.gui.image.SelectionHandle;
 import io.github.toberocat.utils.DataUtility;
 import io.github.toberocat.utils.Utility;
+import io.github.toberocat.utils.selection.LabelSelection;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+
+import static io.github.toberocat.utils.DataUtility.join;
+import static io.github.toberocat.utils.DataUtility.saveObject;
 
 public class EventListener implements KeyListener, MouseListener, MouseMotionListener, ComponentListener {
 
@@ -31,30 +36,47 @@ public class EventListener implements KeyListener, MouseListener, MouseMotionLis
     }
 
     private void loadImage() {
-        DataUtility.createFile(IMAGE_BATCH.getCurrent().c(), null);
+        DataUtility.createFile(IMAGE_BATCH.getCurrent().c());
 
         File file = IMAGE_BATCH.read().c();
         Image image = IMAGE_BATCH.getCurrent().t();
 
+        SelectionHandle.handle().setSelected(null);
         ImageRenderer.instance().drawImage(image, Utility.readLabel(file.getName()), file.getName());
     }
 
     private void loadPreviousImage() {
-        DataUtility.createFile(IMAGE_BATCH.getCurrent().c(), null);
+        DataUtility.createFile(IMAGE_BATCH.getCurrent().c());
 
         File file = IMAGE_BATCH.readPrevious().c();
         Image image = IMAGE_BATCH.getCurrent().t();
 
+        SelectionHandle.handle().setSelected(null);
         ImageRenderer.instance().drawImage(image, Utility.readLabel(file.getName()), file.getName());
     }
 
-    private void deleteEntireLabels() {
-        File file = IMAGE_BATCH.getCurrent().c();
-        if (file == null || !DataUtility.getLabelFile(file).exists()) return;
+    private void delete() {
+        LabelSelection selected = SelectionHandle.handle().getSelected();
+        File image = IMAGE_BATCH.getCurrent().c();
+        if (image == null || !DataUtility.getLabelFile(image).exists()) return;
 
-        ActionLog.logRemoval(DataUtility.getLabelFile(file));
-        SelectionHandle.handle().getSelections().clear();
-        DataUtility.removeContent(file);
+        if (selected == null) {
+
+            ActionLog.logRemoval(DataUtility.getLabelFile(image));
+            SelectionHandle.handle().getSelections().clear();
+            DataUtility.removeContent(image);
+        } else {
+            ActionLog.logSelectionDeletion(selected);
+
+            List<LabelSelection> labelSelections = Utility.readLabel(image.getName());
+            saveObject(DataUtility.getLabelFile(join(Launch.ORIGINAL_IMAGES_PATH, image.getName())),
+                    labelSelections.stream().filter(x -> x.x() != selected.x() || x.y() != selected.y() || x.width() != selected.width()
+                            || x.height() != selected.height()).toArray(LabelSelection[]::new));
+
+            SelectionHandle.handle().setSelected(null);
+        }
+
+        SelectionHandle.handle().reloadFromDisk();
     }
 
     @Override
@@ -68,7 +90,7 @@ public class EventListener implements KeyListener, MouseListener, MouseMotionLis
             case 39 -> loadImage();
             case 37 -> loadPreviousImage();
             case 27 -> SelectionHandle.handle().cancel();
-            case 8, 127 -> deleteEntireLabels();
+            case 8, 127 -> delete();
             case 90 -> {
                 if (e.isControlDown()) ActionLog.undo();
             }
