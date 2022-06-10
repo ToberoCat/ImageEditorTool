@@ -7,11 +7,16 @@ import io.github.toberocat.gui.listener.EventListener;
 import io.github.toberocat.loop.RenderLoop;
 import io.github.toberocat.utils.DataUtility;
 import io.github.toberocat.utils.Utility;
+import io.github.toberocat.utils.selection.Pixelate;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.LinkedList;
+
+import static io.github.toberocat.utils.DataUtility.join;
 
 public class Launch {
     public static File ORIGINAL_IMAGES_PATH;
@@ -52,14 +57,17 @@ public class Launch {
         else createCensorTask();
     }
 
-    private static void createCensorTask() {
-        LinkedList<String> censorFiles = new LinkedList<>();
+    private static void createCensorTask() throws IOException {
+        //LinkedList<String> censorFiles = new LinkedList<>();
         for (String file : ORIGINAL_IMAGES_PATH.list()) {
             if (!DataUtility.join(LABEl_PATH, file + ".txt").exists()) continue;
-            censorFiles.add(file);
+            if (!DataUtility.join(CENSORED_IMAGES_PATH, file).exists()) continue;
+
+            BufferedImage img = Pixelate.pixelate(join(Launch.ORIGINAL_IMAGES_PATH, file), Utility.readLabel(file));
+            ImageIO.write(img, "jpg", join(Launch.CENSORED_IMAGES_PATH, file));
         }
 
-        new Censor(censorFiles.toArray(String[]::new));
+        //new Censor(censorFiles.toArray(String[]::new));
     }
 
 

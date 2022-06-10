@@ -25,7 +25,10 @@ public class RenderLoop implements Runnable {
             return;
         }
         Graphics g = bs.getDrawGraphics();
-        g.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+
+        g.setColor(Color.decode("#070B0D"));
+        g.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+
         //Draw Here
 
         ImageRenderer.instance().render(g);

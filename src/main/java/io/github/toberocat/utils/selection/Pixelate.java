@@ -17,7 +17,8 @@ public class Pixelate {
         float width = img.getWidth(), height = img.getHeight();
 
         for (LabelSelection label : labels) {
-            int pixelate = Math.round((height / width) * (width / height) * (width + height) / 100f);
+            int pixelate = (int) Math.round(
+                    (height / width) * (width / height) * (width + height) * 2 * (Math.min(label.width() + label.height(), 350) / 750f) /100f + (Math.random() * 10));
             pixelate(img, pixelate, label.x(), label.y(), label.width(), label.height());
         }
 

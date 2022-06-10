@@ -12,7 +12,7 @@ import java.util.Arrays;
 import static io.github.toberocat.utils.DataUtility.readRawLabels;
 
 public class Utility {
-    private static int currentLastFile;
+    public static int currentLastFile;
 
     public static ArrayList<LabelSelection> readLabel(String name) {
         LabelSelection[] items = new LabelSelection[0];

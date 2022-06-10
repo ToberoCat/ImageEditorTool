@@ -1,15 +1,22 @@
 package io.github.toberocat.gui;
 
 import io.github.toberocat.actions.ActionLog;
+import io.github.toberocat.gui.image.ImageBatch;
 import io.github.toberocat.gui.image.ImageRenderer;
 import io.github.toberocat.gui.listener.EventListener;
 import io.github.toberocat.loop.RenderLoop;
+import io.github.toberocat.utils.Utility;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
 public class EditorGui extends JFrame implements WindowListener {
@@ -23,6 +30,10 @@ public class EditorGui extends JFrame implements WindowListener {
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         contentPane.setLayout(new BorderLayout(0, 0));
         setContentPane(contentPane);
+
+        getContentPane().setBackground(Color.decode("#091114"));
+        setIconImage(ImageIO.read(getClass().getResource("/icon.png")));
+
 
         // Create canvas
         Canvas canvas = new Canvas();
@@ -40,6 +51,7 @@ public class EditorGui extends JFrame implements WindowListener {
         addWindowListener(this);
     }
 
+
     @Override
     public void windowOpened(WindowEvent e) {
 
@@ -48,6 +60,15 @@ public class EditorGui extends JFrame implements WindowListener {
     @Override
     public void windowClosing(WindowEvent e) {
         ActionLog.cleanup();
+        try {
+            File file = new File("last-edit");
+            file.createNewFile();
+            FileWriter writer = new FileWriter(file);
+            writer.write(String.valueOf(Utility.currentLastFile - ImageBatch.BATCHED - 1));
+            writer.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override

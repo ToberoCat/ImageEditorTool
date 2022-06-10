@@ -7,9 +7,11 @@ import io.github.toberocat.gui.image.SelectionHandle;
 import io.github.toberocat.utils.DataUtility;
 import io.github.toberocat.utils.Utility;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.IOException;
 
 public class EventListener implements KeyListener, MouseListener, MouseMotionListener, ComponentListener {
 
@@ -17,7 +19,7 @@ public class EventListener implements KeyListener, MouseListener, MouseMotionLis
 
     public static int x, y, dragX, dragY;
 
-    public EventListener(Component component) {
+    public EventListener(Canvas component) throws IOException {
         component.addMouseListener(this);
         component.addMouseMotionListener(this);
 

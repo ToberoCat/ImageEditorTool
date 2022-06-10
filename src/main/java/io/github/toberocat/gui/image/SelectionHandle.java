@@ -54,7 +54,7 @@ public class SelectionHandle {
     }
 
     public void accept() {
-        if (current.width == 0 || current.height == 0) return;
+        if (current.width <= 5 || current.height <= 5) return;
 
         LabelSelection selection = LabelSelection.fromRect(selection());
         ActionLog.logSelection(selection);

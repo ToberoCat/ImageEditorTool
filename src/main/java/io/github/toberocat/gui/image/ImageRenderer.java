@@ -72,7 +72,7 @@ public class ImageRenderer implements LoopEvent {
             g.fillRect(x, y, width, height);
 
             g.setColor(SELECTION_BOX_BORDER);
-            g.drawRect(x + 1, y + 1, width - 1, height - 1);
+            g.drawRect(x, y, width,height);
         }
     }
 
