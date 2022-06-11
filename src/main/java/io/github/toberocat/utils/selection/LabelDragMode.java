@@ -9,6 +9,7 @@ public enum LabelDragMode {
     DOWN,
     LEFT,
     RIGHT,
+    MOVE,
     NONE
 
 }

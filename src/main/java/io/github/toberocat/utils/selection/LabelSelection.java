@@ -76,6 +76,8 @@ public class LabelSelection {
         if (contains(this.x, this.y + height / 2, x, y)) return LabelDragMode.LEFT;
         if (contains(this.x + width, this.y + height / 2, x, y)) return LabelDragMode.RIGHT;
 
+        if (contains(x, y)) return LabelDragMode.MOVE;
+
         return LabelDragMode.NONE;
     }
 

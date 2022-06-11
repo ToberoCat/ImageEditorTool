@@ -23,7 +23,8 @@ public class SelectionHandle {
     private LabelDragMode dragMode = LabelDragMode.NONE;
 
     private Point start;
-    private Point lastDrag;
+    private Point distanceBetweenStartAndRect;
+
 
     private SelectionHandle() {
         this.selections = new ArrayList<>();
@@ -42,18 +43,22 @@ public class SelectionHandle {
         int sX = Math.round(abX / ImageRenderer.instance().zoom());
         int sY = Math.round(abY / ImageRenderer.instance().zoom());
 
+        boolean hittedSelection = false;
         for (LabelSelection selection : selections) {
             if (selection.contains(sX, sY)) {
                 selected = selection;
+                distanceBetweenStartAndRect = new Point(sX - selected.x(), sY - selected.y());
+                hittedSelection = true;
                 break;
             }
         }
+
+        if (!hittedSelection) selected = null;
 
         if (selected != null) dragMode = selected.getDragMode(sX, sY);
 
 
         start = new Point(abX, abY);
-        lastDrag = start;
     }
 
     public void mouseDrag(MouseEvent event) {
@@ -82,6 +87,10 @@ public class SelectionHandle {
                     selected.shiftOrigin(getAbsoluteX(event.getX()), selected.y());
                 }
                 case LEFT -> selected.shiftOrigin(getAbsoluteX(event.getX()), selected.y());
+                case MOVE -> {
+                    selected.x(getAbsoluteX(event.getX()) - distanceBetweenStartAndRect.x);
+                    selected.y(getAbsoluteY(event.getY()) - distanceBetweenStartAndRect.y);
+                }
             }
 
             updateFileContent();
